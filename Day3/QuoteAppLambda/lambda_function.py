@@ -1,13 +1,11 @@
 import time
 import boto3
-import json
-from random import randrange
 
 def lambda_handler(event, context):
     #Establish connection with quotation database
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
-    caller = event['requestContext']['http']['sourceIp']
+    caller = event['identity']['sourceIP']
     #Error message (as quotation) if something fails
     quote = 'Everything fails all the time. '
     author = 'Backend Service'
@@ -33,10 +31,5 @@ def lambda_handler(event, context):
     # set parameter defaults
     sentiment = 'neutral'
     
-    data = {'quote': quote, 'author': author, 'sentiment': sentiment, 'serverip': 'lambda', 'caller': caller}
-    
     # return json object (flask automatically jsonify) with quotation details
-    return {
-        'statusCode': 200,
-        'body': json.dumps(data)
-    }
+    return {'quote': quote, 'author': author, 'sentiment': sentiment, 'serverip': caller}

@@ -1,25 +1,13 @@
 import time
-from flask import Flask
-from flask_cors import CORS
 import boto3
-import socket
+import json
 from random import randrange
 
-try: 
-    hostname = socket.gethostname()    
-    ipaddr = socket.gethostbyname(hostname)
-except:
-    ipaddr = '0.0.0.0'
+def lambda_handler(event, context):
+    #Establish connection with quotation database
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
-#Establish connection with quotation database
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/quote')
-def get_random_quote():
-
+    caller = event['identity']['sourceIP']
     #Error message (as quotation) if something fails
     quote = 'Everything fails all the time. '
     author = 'Backend Service'
@@ -45,5 +33,10 @@ def get_random_quote():
     # set parameter defaults
     sentiment = 'neutral'
     
+    data = {'quote': quote, 'author': author, 'sentiment': sentiment, 'serverip': caller}
+    
     # return json object (flask automatically jsonify) with quotation details
-    return {'quote': quote, 'author': author, 'sentiment': sentiment, 'serverip': ipaddr}
+    return {
+        'statusCode': 200,
+        'body': json.dumps(data)
+    }

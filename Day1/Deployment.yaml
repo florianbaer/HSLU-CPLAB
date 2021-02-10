@@ -1,0 +1,53 @@
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentParameter
+        - Key: Education
+          Value: HSLU
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      VersioningConfiguration:
+        Status: Enabled
+        Condition: VersioningEnabled
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join 
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref S3Bucket
+                - /*
+            Principal: '*'
+Conditions:
+  VersioningEnabled: !Equals 
+    - !Ref EnvironmentParameter
+    - Prod
+Parameters:
+  BucketName:
+    Type: String
+    Default: Bucket
+    Description: Enter the name of the S3 Bucket to create
+  EnvironmentParameter:
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Prod
+      - Test
+      - Dev
+    Description: The environment to run in
+Outputs:
+  WebsiteURL:
+    Description: URL for newly created S3 Bucket
+    Value: !GetAtt S3Bucket.WebsiteURL
